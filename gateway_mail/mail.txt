@@ -1,0 +1,6 @@
+From: "ebot-ap01@tscc.com.tw" <ebot-ap01@tscc.com.tw>
+To: "lighter-huang@easycard.com.tw" <lighter-huang@easycard.com.tw>
+Subject: 主機群切換通知
+
+告警通知:
+聊天機器人已主/備集群已進行切換，請通知智能客服相關人員。

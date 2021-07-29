@@ -1,0 +1,55 @@
+groups:
+- name: /1/store/projects/vagrant/docker-swarm-vagrant/apps/swarmprom/prometheus/rules/swarm_node.rules.yml
+  rules:
+  - alert: CPU 用量過高 
+    expr: 100 - (avg(irate(node_cpu_seconds_total{mode="idle"}[1m]) * ON(instance) GROUP_LEFT(node_name)
+      node_meta * 100) BY (node_name)) > 80
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description: Swarm node {{ $labels.node_name }} CPU usage is at {{ humanize $value}}%. 智能客服伺服器 {{ $labels.node_name }}，CPU 用量異常，請通知相關人士協助盤查。
+      summary: CPU alert for Swarm node '{{ $labels.node_name }}'
+  - alert: 記憶體 用量過高
+    expr: sum(((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes)
+      * ON(instance) GROUP_LEFT(node_name) node_meta * 100) BY (node_name) > 90
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description: Swarm node {{ $labels.node_name }} memory usage is at {{ humanize $value}}%. 智能客服伺服器 {{ $labels.node_name }}，記憶體用量異常，請通知相關人士協助盤查。
+      summary: Memory alert for Swarm node '{{ $labels.node_name }}'
+  - alert: 硬碟 用量過高
+    expr: ((node_filesystem_size_bytes{mountpoint="/rootfs"} - node_filesystem_free_bytes{mountpoint="/rootfs"})
+      * 100 / node_filesystem_size_bytes{mountpoint="/rootfs"}) * ON(instance) GROUP_LEFT(node_name)
+      node_meta > 80
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description: Swarm node {{ $labels.node_name }} disk usage is at {{ humanize $value}}%. 智能客服伺服器 {{ $labels.node_name }}，硬碟用量異常，請通知相關人士協助盤查。
+      summary: Disk alert for Swarm node '{{ $labels.node_name }}'
+  # - alert: MysqlTooManyConnections(>80%)
+  #   expr: avg by (instance) (rate(mysql_global_status_threads_connected[1m])) / avg by (instance) (mysql_global_variables_max_connections) * 100 > 80
+  #   for: 5m
+  #   labels:
+  #     severity: warning
+  #   annotations:
+  #     summary: MySQL too many connections (> 80%) (instance {{ $labels.instance }})
+  #     description: "More than 80% of MySQL connections are in use on {{ $labels.instance }}\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}\n 資料庫連線數過高，請通知相關人士協助盤查。"
+  # - alert: MysqlHighThreadsRunning
+  #   expr: avg by (instance) (rate(mysql_global_status_threads_running[1m])) / avg by (instance) (mysql_global_variables_max_connections) * 100 > 60
+  #   for: 5m
+  #   labels:
+  #     severity: warning
+  #   annotations:
+  #     summary: MySQL high threads running (instance {{ $labels.instance }})
+  #     description: "More than 60% of MySQL connections are in running state on {{ $labels.instance }}\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}\n 資料執行緒過高，請通知相關人士協助盤查。"
+  - alert: Docker 服務異常關閉
+    expr: time() - container_last_seen > 60
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: Container killed (instance {{ $labels.instance }})
+      description: "A container has disappeared\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"

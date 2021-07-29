@@ -1,0 +1,35 @@
+groups:
+- name: example
+  rules:
+  # - alert: HighRequestLatency
+  #   expr: request_count_total > 10
+  #   for: 10s
+  #   labels:
+  #     severity: "critical"
+  #   annotations:
+  #     summary: "Endpoint {{ $labels.instance }} down"
+  #     description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minutes."
+  - alert: CPU 用量過高 
+    expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[2m])) * 100) > 80
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description: Node {{ $labels.node_name }} CPU usage is at {{ humanize $value}}%. 智能客服伺服器 {{ $labels.node_name }}，CPU 用量異常，請通知相關人士協助盤查。
+      summary: CPU alert for node '{{ $labels.node_name }}'
+  - alert: 記憶體 用量過高
+    expr: (100-(node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 )) < 90
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description:  Node {{ $labels.node_name }} memory usage is at {{ humanize $value}}%. 智能客服伺服器 {{ $labels.node_name }}，記憶體用量異常，請通知相關人士協助盤查。
+      summary:  Host out of memory for node '{{ $labels.node_name }}'
+  - alert: 硬碟 用量過高
+    expr: (node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes < 20
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      description: Node {{ $labels.node_name }} disk usage is at {{ humanize $value}}%. 智能客服伺服器 {{ $labels.node_name }}，硬碟用量異常，請通知相關人士協助盤查。
+      summary: Disk alert for Node '{{ $labels.node_name }}'

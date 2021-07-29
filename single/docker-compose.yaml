@@ -1,0 +1,77 @@
+version: '3.7'
+volumes:
+    prometheus_data: {}
+    grafana_data: {}
+services:
+  prometheus:
+    image: prom/prometheus:v2.1.0
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml
+      - ./alert_rules.yaml:/Documents/prometheus-data/alert_rules.yaml
+      # - ./alert_rules.yaml:/etc/prometheus/alert_rules.yaml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+    ports:
+      - 10052:9090
+  grafana:
+    # image: grafana/grafana:7.2.0
+    image: harbor.emotibot.com/bfop/grafana:8e9e1c5-20210722-0432
+    volumes:
+        - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    ports:
+      - 10051:3000
+  # mysqld-exporter:
+  #   image: prom/mysqld-exporter
+  #   ports:
+  #     - 9104:9104
+  #   environment:
+  #     - DATA_SOURCE_NAME="root:password@(172.17.0.1:3306)/"
+  alertmanager:
+    image: prom/alertmanager
+    ports:
+      - 10053:9093
+    volumes:
+      - ./alertmanager.yaml/:/etc/alertmanager/alertmanager.yaml
+      - ./alert_rules.yaml:/etc/prometheus/alert_rules.yaml
+    restart: always
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yaml'
+      - '--storage.path=/alertmanager'
+  node-exporter:
+    image: prom/node-exporter
+    ports:
+      - 9100:9100
+  cadvisor:
+    image: google/cadvisor:latest
+    ports:
+      - '8080:8080'
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+  # node-exporter:
+  #   image: harbor.emotibot.com/bfop/swarmprom-node-exporter:v0.16.0
+  #   environment:
+  #     - NODE_ID={{.Node.ID}}
+  #   volumes:
+  #     - /proc:/host/proc:ro
+  #     - /sys:/host/sys:ro
+  #     - /:/rootfs:ro
+  #     - /etc/hostname:/etc/nodename
+  #   command:
+  #     - '--path.sysfs=/host/sys'
+  #     - '--path.procfs=/host/proc'
+  #     - '--collector.textfile.directory=/etc/node-exporter/'
+  #     - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+  #     - '--no-collector.ipvs'
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 128M
+  #       reservations:
+  #         memory: 64M

@@ -1,0 +1,34 @@
+global:
+  resolve_timeout: 5m
+route:
+  group_by: ['example']
+  group_wait: 5s
+  group_interval: 3h
+  repeat_interval: 3h
+  receiver: 'email'
+receivers:
+- name: 'email'
+  email_configs:
+  - to: 'lighter-huang@easycard.com.tw'
+    from: 'ebot-ap01@tscc.com.tw'
+    smarthost: 192.168.1.242:25
+    require_tls: false
+    auth_username: 
+    auth_identity: 
+    auth_password: 
+# - name: 'email'
+#   email_configs:
+#   - to: 'chenhung0506@gmail.com'
+#     from: 'chenhunglin@emotibot.com'
+#     smarthost: smtp.partner.outlook.cn:587
+#     auth_username: 'chenhunglin@emotibot.com'
+#     auth_identity: 'chenhunglin@emotibot.com'
+#     auth_password: 'chenhunglin@Emotibot'
+    headers:
+      subject: 【告警通知】智能客服ebot_gateway
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'dev', 'instance']
